@@ -58,7 +58,7 @@
     </header>
 
     <!-- Área Principal -->
-    <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-6" id="app-content" aria-live="polite">
+    <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-6 relative" id="app-content" aria-live="polite">
         <!-- O conteúdo será injetado aqui via JavaScript -->
     </main>
 
@@ -77,12 +77,27 @@
         const state = {
             config: {
                 padrao: { "Língua Portuguesa": 12, "Noções de Informática": 6, "Administração Pública": 12, "Conhecimentos Específicos": 30 },
-                enfase: "Nenhuma" // Pode ser: Nenhuma, Todas, Língua Portuguesa, etc.
+                enfase: "Nenhuma"
             },
             history: [],
             currentSimulado: [],
-            respostasUsuario: {}
+            respostasUsuario: {},
+            isSimuladoActive: false, // <-- NOVA FLAG PARA CONTROLAR O BLOQUEIO DA PÁGINA
+            timer: {
+                id: null,
+                remaining: 14400, // 4 horas em segundos
+                elapsed: 0
+            }
         };
+
+        /* PREVINE O USUÁRIO DE ATUALIZAR/FECHAR A ABA NO MEIO DA PROVA */
+        window.addEventListener('beforeunload', function (e) {
+            if (state.isSimuladoActive) {
+                // Cancela o evento e exibe o prompt padrão do navegador
+                e.preventDefault();
+                e.returnValue = ''; // Necessário para o Chrome
+            }
+        });
 
         /* 3. FUNÇÕES DE INICIALIZAÇÃO E UTILITÁRIOS */
         function init() {
@@ -111,9 +126,79 @@
                 data: new Date().toLocaleString(),
                 acertos: resultado.acertos,
                 total: resultado.total,
-                percentual: ((resultado.acertos / resultado.total) * 100).toFixed(1)
+                percentual: ((resultado.acertos / resultado.total) * 100).toFixed(1),
+                tempoGasto: state.timer.elapsed
             });
             localStorage.setItem('ufba_simulado_history', JSON.stringify(state.history));
+        }
+
+        function formatTime(seconds) {
+            if (seconds === undefined || seconds === null) return "--:--:--";
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch (e) {
+                console.error("Não foi possível reproduzir o beep sonoro", e);
+            }
+        }
+
+        /* TIMER LOGIC */
+        function startTimer() {
+            clearInterval(state.timer.id);
+            state.timer.remaining = 14400; // 4 horas
+            state.timer.elapsed = 0;
+            atualizarUITimer();
+
+            state.timer.id = setInterval(() => {
+                state.timer.remaining--;
+                state.timer.elapsed++;
+
+                atualizarUITimer();
+
+                if (state.timer.elapsed > 0 && state.timer.elapsed % 1800 === 0) {
+                    playBeep();
+                }
+
+                if (state.timer.remaining <= 0) {
+                    clearInterval(state.timer.id);
+                    alert("Tempo esgotado! O simulado será finalizado automaticamente.");
+                    finalizarSimulado(true);
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(state.timer.id);
+        }
+
+        function atualizarUITimer() {
+            const el = document.getElementById('timer-display');
+            if (el) {
+                el.textContent = `⏳ Tempo restante: ${formatTime(state.timer.remaining)}`;
+                if (state.timer.remaining < 1800) {
+                    el.classList.add('text-red-600', 'dark:text-red-400');
+                    el.classList.remove('text-ufba-600', 'dark:text-blue-400');
+                }
+            }
         }
 
         /* 4. MODO CLARO E ESCURO */
@@ -135,6 +220,16 @@
 
         /* 5. NAVEGAÇÃO E RENDERIZAÇÃO DE TELAS */
         function navigate(view) {
+            // Se tentar navegar pelo menu interno enquando o simulado estiver rolando
+            if (state.isSimuladoActive && view !== 'quiz') {
+                const confirmar = confirm("Você está no meio de um simulado. Se sair agora, seu progresso não será salvo. Deseja realmente sair?");
+                if (!confirmar) return; // Cancela a navegação
+
+                // Se confirmou a saída, desativa a flag do simulado
+                state.isSimuladoActive = false;
+            }
+
+            stopTimer();
             const container = document.getElementById('app-content');
             container.innerHTML = '';
 
@@ -187,9 +282,10 @@
             }
 
             const rows = state.history.slice().reverse().map((h, i) => `
-                <tr class="border-b dark:border-gray-700">
+                <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750">
                     <td class="p-3">${h.data}</td>
                     <td class="p-3 text-center">${h.acertos} / ${h.total}</td>
+                    <td class="p-3 text-center">${formatTime(h.tempoGasto)}</td>
                     <td class="p-3 text-center font-bold ${h.percentual >= 70 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${h.percentual}%</td>
                 </tr>
             `).join('');
@@ -202,6 +298,7 @@
                             <tr class="bg-gray-100 dark:bg-gray-700">
                                 <th class="p-3">Data/Hora</th>
                                 <th class="p-3 text-center">Acertos</th>
+                                <th class="p-3 text-center">Tempo Gasto</th>
                                 <th class="p-3 text-center">Desempenho</th>
                             </tr>
                         </thead>
@@ -221,7 +318,9 @@
                 return;
             }
 
+            state.isSimuladoActive = true; // Ativa o bloqueio de saída da página
             renderizarQuiz(container);
+            startTimer();
         }
 
         function gerarListaQuestoes() {
@@ -229,7 +328,6 @@
             const enfase = state.config.enfase;
             const padrao = state.config.padrao;
 
-            // 1. Determina a quantidade de questões necessárias para cada disciplina
             const metas = {
                 "Língua Portuguesa": padrao["Língua Portuguesa"],
                 "Noções de Informática": padrao["Noções de Informática"],
@@ -237,7 +335,6 @@
                 "Conhecimentos Específicos": padrao["Conhecimentos Específicos"]
             };
 
-            // Aplica a regra de ênfase (dobra a quantidade da matéria selecionada)
             if (enfase === "Todas") {
                 for (let materia in metas) {
                     metas[materia] *= 2;
@@ -246,7 +343,6 @@
                 metas[enfase] *= 2;
             }
 
-            // 2. Agrupa as questões do banco por temática
             const questoesAgrupadas = {
                 "Língua Portuguesa": [],
                 "Noções de Informática": [],
@@ -260,7 +356,6 @@
                 }
             });
 
-            // 3. Ordem de exibição na prova (simulando um caderno de prova real)
             const ordemDaProva = [
                 "Língua Portuguesa",
                 "Noções de Informática",
@@ -268,16 +363,9 @@
                 "Conhecimentos Específicos"
             ];
 
-            // 4. Sorteia e seleciona a quantidade exata de questões para cada bloco
             ordemDaProva.forEach(materia => {
-                // Embaralha todas as questões disponíveis desta matéria
                 let embaralhadas = questoesAgrupadas[materia].sort(() => Math.random() - 0.5);
-
-                // Corta o array para pegar apenas a quantidade estipulada na meta
-                // Caso o banco tenha menos questões que a meta, pega todas as disponíveis
                 let selecionadas = embaralhadas.slice(0, metas[materia]);
-
-                // Adiciona as questões selecionadas ao caderno do simulado
                 simuladoFinal.push(...selecionadas);
             });
 
@@ -285,7 +373,11 @@
         }
 
         function renderizarQuiz(container) {
-            let formHtml = `<h2 class="text-2xl font-bold mb-6">Respondendo Simulado (${state.currentSimulado.length} questões)</h2>`;
+            let formHtml = `
+                <div id="timer-display" class="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur z-50 p-3 mb-6 shadow-md border-b dark:border-gray-700 text-center font-extrabold text-xl text-ufba-600 dark:text-blue-400 rounded-b-lg transition-colors">
+                    ⏳ Tempo restante: 04:00:00
+                </div>
+                <h2 class="text-2xl font-bold mb-6">Respondendo Simulado (${state.currentSimulado.length} questões)</h2>`;
 
             state.currentSimulado.forEach((q, index) => {
                 let opcoesHtml = q.opcoes.map((opcao, i) => `
@@ -316,7 +408,7 @@
             container.innerHTML = formHtml;
         }
 
-        function finalizarSimulado() {
+        function finalizarSimulado(forcar = false) {
             let acertos = 0;
             let naoRespondidas = 0;
 
@@ -333,13 +425,24 @@
                 }
             });
 
-            if (naoRespondidas > 0) {
+            if (naoRespondidas > 0 && !forcar) {
                 const confirmar = confirm(`Você deixou ${naoRespondidas} questão(ões) em branco. Deseja finalizar mesmo assim?`);
                 if (!confirmar) return;
             }
 
+            state.isSimuladoActive = false; // Desativa o bloqueio, pois a prova foi entregue
+            stopTimer();
             salvarHistorico({ acertos, total: state.currentSimulado.length });
             renderizarGabarito(acertos, state.currentSimulado.length);
+        }
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (err) {
+                return false;
+            }
         }
 
         function renderizarGabarito(acertos, total) {
@@ -347,54 +450,140 @@
             const percentual = ((acertos / total) * 100).toFixed(1);
 
             let html = `
-                <div class="text-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
-                    <h2 class="text-3xl font-bold mb-2">Resultado Final</h2>
-                    <p class="text-xl mb-4">Você acertou <span class="font-bold ${percentual >= 70 ? 'text-green-600' : 'text-red-600'}">${acertos}</span> de ${total} questões (${percentual}%).</p>
-                    <button onclick="navigate('history')" class="bg-gray-800 dark:bg-gray-600 text-white px-6 py-2 rounded focus:ring-2">Ver Histórico</button>
+                <div class="text-center bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-8 border border-gray-100 dark:border-gray-700">
+                    <h2 class="text-3xl font-extrabold mb-3 text-gray-800 dark:text-gray-100">Resultado Final</h2>
+                    <p class="text-xl mb-2 text-gray-600 dark:text-gray-300">Você acertou <span class="font-bold text-2xl ${percentual >= 70 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${acertos}</span> de ${total} questões (${percentual}%).</p>
+                    <p class="text-md mb-6 font-semibold text-gray-500 dark:text-gray-400">⏱️ Tempo total da tentativa: ${formatTime(state.timer.elapsed)}</p>
+                    <button onclick="navigate('history')" class="bg-ufba-500 hover:bg-ufba-600 text-white font-bold px-8 py-3 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:ring-4 focus:ring-blue-300">Ver Histórico de Desempenho</button>
                 </div>
-                <h3 class="text-xl font-bold mb-4">Gabarito Detalhado:</h3>
+                
+                <div class="flex items-center gap-2 mb-6">
+                    <h3 class="text-2xl font-bold">Gabarito Analítico:</h3>
+                    <span class="text-sm font-normal text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full">Correção e Referências</span>
+                </div>
             `;
 
             state.currentSimulado.forEach((q, index) => {
                 const respostaUser = state.respostasUsuario[q.id];
                 const acertou = respostaUser === q.respostaCorreta;
-                const statusColor = acertou ? "border-green-500 bg-green-50 dark:bg-green-900/20" : "border-red-500 bg-red-50 dark:bg-red-900/20";
-                const statusIcon = acertou ? "✅ Correta" : "❌ Incorreta";
+
+                const statusColor = acertou
+                    ? "border-green-400 bg-green-50 dark:bg-green-900/10 dark:border-green-600/50"
+                    : "border-red-400 bg-red-50 dark:bg-red-900/10 dark:border-red-600/50";
+
+                const statusIcon = acertou
+                    ? "<span class='text-green-600 dark:text-green-400'>✅ Acertou</span>"
+                    : "<span class='text-red-600 dark:text-red-400'>❌ Errou</span>";
+
+                const dificuldadeColors = {
+                    'facil': 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
+                    'media': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+                    'dificil': 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                };
+
+                const nivelDificuldade = q.dificuldade ? q.dificuldade.toLowerCase() : 'media';
+                const diffText = q.dificuldade ? q.dificuldade.charAt(0).toUpperCase() + q.dificuldade.slice(1) : 'Média';
+                const diffClass = dificuldadeColors[nivelDificuldade] || dificuldadeColors['media'];
 
                 let analiseHtml = q.opcoes.map((opcao, i) => {
-                    let estilo = "text-gray-500 dark:text-gray-400";
+                    let estilo = "text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-800/60";
                     let icone = "";
 
                     if (i === q.respostaCorreta) {
-                        estilo = "font-bold text-green-700 dark:text-green-400";
-                        icone = "✓ (Gabarito)";
+                        estilo = "font-bold text-green-800 dark:text-green-200 bg-green-200 dark:bg-green-800/60 border-green-400 dark:border-green-500 shadow-sm";
+                        icone = "✓ Correta";
                     } else if (i === respostaUser) {
-                        estilo = "font-bold text-red-700 dark:text-red-400 line-through";
-                        icone = "✗ (Sua marcação)";
+                        estilo = "font-bold text-red-800 dark:text-red-200 bg-red-200 dark:bg-red-800/60 border-red-400 dark:border-red-500 opacity-90 line-through decoration-red-500/50";
+                        icone = "✗ Sua marcação";
                     }
 
-                    return `<div class="mb-1 ${estilo}">${opcao} ${icone}</div>`;
+                    return `
+                        <div class="p-3 rounded-lg mb-2 ${estilo} flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 transition-colors">
+                            <span class="flex-1">${opcao}</span>
+                            ${icone ? `<span class="text-xs uppercase tracking-wider font-extrabold whitespace-nowrap px-2 py-1 rounded bg-white/50 dark:bg-black/20">${icone}</span>` : ''}
+                        </div>`;
                 }).join('');
 
+                let referenciasHtml = '';
+                if (q.referencias && q.referencias.length > 0) {
+                    referenciasHtml = q.referencias.map(i =>
+                        `<li>${isValidUrl(i) ? `<a href="${i}" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline break-all">${i}</a>` : i}</li>`
+                    ).join('');
+                } else {
+                    referenciasHtml = '<li>Nenhuma referência externa informada.</li>';
+                }
+
                 html += `
-                    <div class="mb-6 p-4 border-l-4 rounded shadow-sm ${statusColor}">
-                        <div class="font-bold mb-2">${index + 1}. ${q.tematica} - ${statusIcon}</div>
-                        <p class="mb-3 font-medium text-gray-800 dark:text-gray-200">${q.pergunta}</p>
-                        <div class="text-sm">
+                    <div class="mb-8 p-5 sm:p-7 border-l-8 rounded-xl shadow-md ${statusColor}">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 pb-3 border-b border-gray-200 dark:border-gray-700/50 gap-3">
+                            <div>
+                                <div class="font-extrabold text-lg flex items-center gap-2">
+                                    <span>${index + 1}. ${q.tematica}</span>
+                                </div>
+                                ${q.assunto ? `<div class="text-sm text-gray-600 dark:text-gray-400 mt-1 uppercase tracking-wide font-semibold flex items-center gap-1">↳ ${q.assunto}</div>` : ''}
+                            </div>
+                            
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-lg mr-2">${statusIcon}</span>
+                                <span class="px-3 py-1 text-xs font-bold rounded-full ${diffClass}">Nível: ${diffText}</span>
+                                <span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">Peso: ${q.peso || 1}</span>
+                            </div>
+                        </div>
+
+                        <p class="mb-5 text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 leading-relaxed">${q.pergunta}</p>
+                        <div class="mb-6 space-y-2">
                             ${analiseHtml}
+                        </div>
+
+                        ${q.explicacao ? `
+                        <div class="mt-6 mb-4 p-4 sm:p-5 bg-white/80 dark:bg-gray-900/50 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                            <h4 class="font-bold text-ufba-600 dark:text-blue-400 mb-2 flex items-center gap-2">
+                                💡 Comentário do Professor
+                            </h4>
+                            <p class="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">${q.explicacao}</p>
+                        </div>
+                        ` : ''}
+
+                        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/50 text-xs text-gray-600 dark:text-gray-400 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                                <span class="font-bold text-gray-800 dark:text-gray-200 block mb-1">📖 Item do Edital:</span>
+                                <span>${q.itemEdital || 'Não mapeado no edital atual'}</span>
+                            </div>
+
+                            <div>
+                                <span class="font-bold text-gray-800 dark:text-gray-200 block mb-1">🔗 Referências de Estudo:</span>
+                                <ul class="list-disc pl-4 space-y-1">
+                                    ${referenciasHtml}
+                                </ul>
+                            </div>
+
+                            ${q.provaReferencia ? `
+                            <div class="lg:col-span-2 mt-2 p-3 bg-gray-100 dark:bg-gray-800/80 rounded border border-gray-200 dark:border-gray-700">
+                                <span class="font-bold text-gray-800 dark:text-gray-200 block mb-1">🏛 Origem / Histórico da Questão:</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                    <div><strong>Órgão:</strong> ${q.provaReferencia.instituicao}</div>
+                                    <div><strong>Banca:</strong> ${q.provaReferencia.banca} (${q.provaReferencia.edital})</div>
+                                    <div><strong>Questão Original:</strong> N.º ${q.provaReferencia.questao} (Prova Tipo ${q.provaReferencia.tipo})</div>${q.origem ? `<div><strong>Status:</strong> ${q.origem}</div>` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
             });
 
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             container.innerHTML = html;
         }
 
         // Inicia a aplicação
         window.onload = async (event) => {
-            const res = await fetch("dataset/questoes_ufba_comentadas.json");
-            bancoDeQuestoes = await res.json();
+            try {
+                const res = await fetch("dataset/questoes_ufba_comentadas.json");
+                bancoDeQuestoes = await res.json();
+            } catch (err) {
+                console.error("Erro ao buscar banco de dados (JSON).", err);
+            }
             init();
         };
     </script>
