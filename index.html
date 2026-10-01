@@ -85,8 +85,7 @@
         };
 
         /* 3. FUNÇÕES DE INICIALIZAÇÃO E UTILITÁRIOS */
-        async function init() {
-            bancoDeQuestoes = await fetch("dataset/questoes_ufba_comentadas.json");
+        function init() {
             carregarDadosLocais();
             aplicarTemaPreferencia();
             navigate('home');
@@ -393,7 +392,11 @@
         }
 
         // Inicia a aplicação
-        window.onload = init;
+        window.onload = async (event) => {
+            const res = await fetch("dataset/questoes_ufba_comentadas.json");
+            bancoDeQuestoes = await res.json();
+            init();
+        };
     </script>
 </body>
 
