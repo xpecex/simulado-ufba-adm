@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado UFBA - ASSISTENTE EM ADMINISTRAÇÃO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ufba: {
+                            500: '#005594',
+                            600: '#003d6b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Melhorias de acessibilidade para foco */
+        *:focus-visible {
+            outline: 3px solid #005594;
+            outline-offset: 2px;
+        }
+
+        .dark *:focus-visible {
+            outline: 3px solid #60a5fa;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen flex flex-col">
+
+    <!-- Cabeçalho -->
+    <header class="bg-white dark:bg-gray-800 shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+            <h1 class="text-xl font-bold text-ufba-600 dark:text-blue-400">Simulado UFBA</h1>
+            <nav class="flex gap-2 sm:gap-4 text-sm sm:text-base">
+                <button onclick="navigate('home')"
+                    class="hover:text-ufba-500 font-semibold focus:ring-2 rounded px-2 py-1">Início</button>
+                <button onclick="navigate('config')"
+                    class="hover:text-ufba-500 font-semibold focus:ring-2 rounded px-2 py-1">Configurações</button>
+                <button onclick="navigate('history')"
+                    class="hover:text-ufba-500 font-semibold focus:ring-2 rounded px-2 py-1">Progresso</button>
+                <button onclick="toggleTheme()"
+                    class="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-full font-semibold focus:ring-2"
+                    aria-label="Alternar tema claro e escuro">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Área Principal -->
+    <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-6" id="app-content" aria-live="polite">
+        <!-- O conteúdo será injetado aqui via JavaScript -->
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-white dark:bg-gray-800 border-t dark:border-gray-700 mt-auto">
+        <div class="max-w-4xl mx-auto px-4 py-4 text-center text-sm">
+            Simulado Assistente em Administração - Baseado no Edital UFBA e provas do Instituto Avalia.
+        </div>
+    </footer>
+
+    <script>
+        /* 1. ESTRUTURA JSON DAS QUESTÕES */
+        let bancoDeQuestoes = [];
+
+        /* 2. ESTADO DA APLICAÇÃO */
+        const state = {
+            config: {
+                padrao: { "Língua Portuguesa": 12, "Noções de Informática": 6, "Administração Pública": 12, "Conhecimentos Específicos": 30 },
+                enfase: "Nenhuma" // Pode ser: Nenhuma, Todas, Língua Portuguesa, etc.
+            },
+            history: [],
+            currentSimulado: [],
+            respostasUsuario: {}
+        };
+
+        /* 3. FUNÇÕES DE INICIALIZAÇÃO E UTILITÁRIOS */
+        async function init() {
+            bancoDeQuestoes = await fetch("dataset/questoes_ufba_comentadas.json");
+            carregarDadosLocais();
+            aplicarTemaPreferencia();
+            navigate('home');
+        }
+
+        function carregarDadosLocais() {
+            const savedConfig = localStorage.getItem('ufba_simulado_config');
+            if (savedConfig) state.config = JSON.parse(savedConfig);
+
+            const savedHistory = localStorage.getItem('ufba_simulado_history');
+            if (savedHistory) state.history = JSON.parse(savedHistory);
+        }
+
+        function salvarConfig() {
+            const enfaseSelecionada = document.getElementById('enfase-select').value;
+            state.config.enfase = enfaseSelecionada;
+            localStorage.setItem('ufba_simulado_config', JSON.stringify(state.config));
+            alert('Configurações salvas com sucesso!');
+        }
+
+        function salvarHistorico(resultado) {
+            state.history.push({
+                data: new Date().toLocaleString(),
+                acertos: resultado.acertos,
+                total: resultado.total,
+                percentual: ((resultado.acertos / resultado.total) * 100).toFixed(1)
+            });
+            localStorage.setItem('ufba_simulado_history', JSON.stringify(state.history));
+        }
+
+        /* 4. MODO CLARO E ESCURO */
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            document.getElementById('theme-icon').textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('ufba_theme', isDark ? 'dark' : 'light');
+        }
+
+        function aplicarTemaPreferencia() {
+            const savedTheme = localStorage.getItem('ufba_theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').textContent = '☀️';
+            }
+        }
+
+        /* 5. NAVEGAÇÃO E RENDERIZAÇÃO DE TELAS */
+        function navigate(view) {
+            const container = document.getElementById('app-content');
+            container.innerHTML = '';
+
+            if (view === 'home') container.innerHTML = renderHome();
+            if (view === 'config') container.innerHTML = renderConfig();
+            if (view === 'quiz') iniciarSimulado(container);
+            if (view === 'history') container.innerHTML = renderHistory();
+        }
+
+        function renderHome() {
+            return `
+                <div class="text-center py-10">
+                    <h2 class="text-2xl sm:text-3xl font-bold mb-4">Bem-vindo ao Simulado</h2>
+                    <p class="mb-8 text-gray-600 dark:text-gray-300">Prepare-se para o concurso da UFBA para Assistente em Administração, testando seus conhecimentos com foco no estilo do Instituto Avalia.</p>
+                    <button onclick="navigate('quiz')" class="bg-ufba-500 hover:bg-ufba-600 text-white text-lg font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 focus:ring-4 focus:ring-blue-300">
+                        Iniciar Simulado
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderConfig() {
+            const areas = ["Nenhuma", "Todas", "Língua Portuguesa", "Noções de Informática", "Administração Pública", "Conhecimentos Específicos"];
+            const options = areas.map(area =>
+                `<option value="${area}" ${state.config.enfase === area ? 'selected' : ''}>${area}</option>`
+            ).join('');
+
+            return `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:border-gray-700">Configurações do Simulado</h2>
+                    <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">O edital prevê: 12 questões de Língua Portuguesa, 6 de Informática, 12 de Administração Pública e 30 de Conhecimentos Específicos. Você pode alterar a ênfase para aumentar o volume de questões de uma disciplina.</p>
+                    
+                    <div class="mb-6">
+                        <label for="enfase-select" class="block font-semibold mb-2">Focar/Dar Ênfase em:</label>
+                        <select id="enfase-select" class="w-full sm:w-1/2 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-ufba-500 outline-none">
+                            ${options}
+                        </select>
+                    </div>
+
+                    <button onclick="salvarConfig()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded focus:ring-4 focus:ring-green-300">
+                        Salvar Configurações
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderHistory() {
+            if (state.history.length === 0) {
+                return `<div class="text-center py-10"><h2 class="text-2xl font-bold mb-4">Progresso</h2><p>Você ainda não realizou nenhum simulado.</p></div>`;
+            }
+
+            const rows = state.history.slice().reverse().map((h, i) => `
+                <tr class="border-b dark:border-gray-700">
+                    <td class="p-3">${h.data}</td>
+                    <td class="p-3 text-center">${h.acertos} / ${h.total}</td>
+                    <td class="p-3 text-center font-bold ${h.percentual >= 70 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${h.percentual}%</td>
+                </tr>
+            `).join('');
+
+            return `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md overflow-x-auto">
+                    <h2 class="text-2xl font-bold mb-4 border-b pb-2 dark:border-gray-700">Seu Progresso</h2>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 dark:bg-gray-700">
+                                <th class="p-3">Data/Hora</th>
+                                <th class="p-3 text-center">Acertos</th>
+                                <th class="p-3 text-center">Desempenho</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        /* 6. LÓGICA DO SIMULADO (MONTAGEM E AVALIAÇÃO) */
+        function iniciarSimulado(container) {
+            state.respostasUsuario = {};
+            state.currentSimulado = gerarListaQuestoes();
+
+            if (state.currentSimulado.length === 0) {
+                container.innerHTML = `<div class="p-4 bg-red-100 text-red-800 rounded">Não há questões suficientes no banco de dados para gerar o simulado. Adicione questões ao array JSON.</div>`;
+                return;
+            }
+
+            renderizarQuiz(container);
+        }
+
+        function gerarListaQuestoes() {
+            let simuladoFinal = [];
+            const enfase = state.config.enfase;
+            const padrao = state.config.padrao;
+
+            // 1. Determina a quantidade de questões necessárias para cada disciplina
+            const metas = {
+                "Língua Portuguesa": padrao["Língua Portuguesa"],
+                "Noções de Informática": padrao["Noções de Informática"],
+                "Administração Pública": padrao["Administração Pública"],
+                "Conhecimentos Específicos": padrao["Conhecimentos Específicos"]
+            };
+
+            // Aplica a regra de ênfase (dobra a quantidade da matéria selecionada)
+            if (enfase === "Todas") {
+                for (let materia in metas) {
+                    metas[materia] *= 2;
+                }
+            } else if (enfase !== "Nenhuma" && metas[enfase] !== undefined) {
+                metas[enfase] *= 2;
+            }
+
+            // 2. Agrupa as questões do banco por temática
+            const questoesAgrupadas = {
+                "Língua Portuguesa": [],
+                "Noções de Informática": [],
+                "Administração Pública": [],
+                "Conhecimentos Específicos": []
+            };
+
+            bancoDeQuestoes.forEach(q => {
+                if (questoesAgrupadas[q.tematica]) {
+                    questoesAgrupadas[q.tematica].push(q);
+                }
+            });
+
+            // 3. Ordem de exibição na prova (simulando um caderno de prova real)
+            const ordemDaProva = [
+                "Língua Portuguesa",
+                "Noções de Informática",
+                "Administração Pública",
+                "Conhecimentos Específicos"
+            ];
+
+            // 4. Sorteia e seleciona a quantidade exata de questões para cada bloco
+            ordemDaProva.forEach(materia => {
+                // Embaralha todas as questões disponíveis desta matéria
+                let embaralhadas = questoesAgrupadas[materia].sort(() => Math.random() - 0.5);
+
+                // Corta o array para pegar apenas a quantidade estipulada na meta
+                // Caso o banco tenha menos questões que a meta, pega todas as disponíveis
+                let selecionadas = embaralhadas.slice(0, metas[materia]);
+
+                // Adiciona as questões selecionadas ao caderno do simulado
+                simuladoFinal.push(...selecionadas);
+            });
+
+            return simuladoFinal;
+        }
+
+        function renderizarQuiz(container) {
+            let formHtml = `<h2 class="text-2xl font-bold mb-6">Respondendo Simulado (${state.currentSimulado.length} questões)</h2>`;
+
+            state.currentSimulado.forEach((q, index) => {
+                let opcoesHtml = q.opcoes.map((opcao, i) => `
+                    <label class="flex items-start p-3 border rounded mb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-600 transition-colors">
+                        <input type="radio" name="q_${q.id}" value="${i}" class="mt-1 mr-3 w-4 h-4 text-ufba-600 focus:ring-ufba-500" required>
+                        <span class="text-sm sm:text-base">${opcao}</span>
+                    </label>
+                `).join('');
+
+                formHtml += `
+                    <fieldset class="mb-8 p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700" id="questao_box_${q.id}">
+                        <legend class="text-xs font-bold uppercase tracking-wider text-ufba-600 dark:text-blue-400 mb-2">${index + 1}. ${q.tematica}</legend>
+                        <p class="mb-4 text-base sm:text-lg font-medium">${q.pergunta}</p>
+                        <div class="flex flex-col gap-1">
+                            ${opcoesHtml}
+                        </div>
+                    </fieldset>
+                `;
+            });
+
+            formHtml += `
+                <div class="text-center mt-8">
+                    <button onclick="finalizarSimulado()" class="bg-ufba-500 hover:bg-ufba-600 text-white text-lg font-bold py-3 px-8 rounded-lg shadow focus:ring-4 focus:ring-blue-300 w-full sm:w-auto">
+                        Finalizar e Ver Gabarito
+                    </button>
+                </div>
+            `;
+            container.innerHTML = formHtml;
+        }
+
+        function finalizarSimulado() {
+            let acertos = 0;
+            let naoRespondidas = 0;
+
+            state.currentSimulado.forEach(q => {
+                const selecionada = document.querySelector(`input[name="q_${q.id}"]:checked`);
+                if (selecionada) {
+                    const valorSelecionado = parseInt(selecionada.value);
+                    state.respostasUsuario[q.id] = valorSelecionado;
+                    if (valorSelecionado === q.respostaCorreta) {
+                        acertos++;
+                    }
+                } else {
+                    naoRespondidas++;
+                }
+            });
+
+            if (naoRespondidas > 0) {
+                const confirmar = confirm(`Você deixou ${naoRespondidas} questão(ões) em branco. Deseja finalizar mesmo assim?`);
+                if (!confirmar) return;
+            }
+
+            salvarHistorico({ acertos, total: state.currentSimulado.length });
+            renderizarGabarito(acertos, state.currentSimulado.length);
+        }
+
+        function renderizarGabarito(acertos, total) {
+            const container = document.getElementById('app-content');
+            const percentual = ((acertos / total) * 100).toFixed(1);
+
+            let html = `
+                <div class="text-center bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+                    <h2 class="text-3xl font-bold mb-2">Resultado Final</h2>
+                    <p class="text-xl mb-4">Você acertou <span class="font-bold ${percentual >= 70 ? 'text-green-600' : 'text-red-600'}">${acertos}</span> de ${total} questões (${percentual}%).</p>
+                    <button onclick="navigate('history')" class="bg-gray-800 dark:bg-gray-600 text-white px-6 py-2 rounded focus:ring-2">Ver Histórico</button>
+                </div>
+                <h3 class="text-xl font-bold mb-4">Gabarito Detalhado:</h3>
+            `;
+
+            state.currentSimulado.forEach((q, index) => {
+                const respostaUser = state.respostasUsuario[q.id];
+                const acertou = respostaUser === q.respostaCorreta;
+                const statusColor = acertou ? "border-green-500 bg-green-50 dark:bg-green-900/20" : "border-red-500 bg-red-50 dark:bg-red-900/20";
+                const statusIcon = acertou ? "✅ Correta" : "❌ Incorreta";
+
+                let analiseHtml = q.opcoes.map((opcao, i) => {
+                    let estilo = "text-gray-500 dark:text-gray-400";
+                    let icone = "";
+
+                    if (i === q.respostaCorreta) {
+                        estilo = "font-bold text-green-700 dark:text-green-400";
+                        icone = "✓ (Gabarito)";
+                    } else if (i === respostaUser) {
+                        estilo = "font-bold text-red-700 dark:text-red-400 line-through";
+                        icone = "✗ (Sua marcação)";
+                    }
+
+                    return `<div class="mb-1 ${estilo}">${opcao} ${icone}</div>`;
+                }).join('');
+
+                html += `
+                    <div class="mb-6 p-4 border-l-4 rounded shadow-sm ${statusColor}">
+                        <div class="font-bold mb-2">${index + 1}. ${q.tematica} - ${statusIcon}</div>
+                        <p class="mb-3 font-medium text-gray-800 dark:text-gray-200">${q.pergunta}</p>
+                        <div class="text-sm">
+                            ${analiseHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            window.scrollTo(0, 0);
+            container.innerHTML = html;
+        }
+
+        // Inicia a aplicação
+        window.onload = init;
+    </script>
+</body>
+
+</html>
