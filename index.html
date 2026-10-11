@@ -323,6 +323,45 @@
             startTimer();
         }
 
+        const LIMITE_QUESTOES_POR_TEXTO_BASE = 1;
+
+        function normalizarTexto(txt) {
+            return (txt || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toLowerCase();
+        }
+
+        function chaveQuestao(questao) {
+            return normalizarTexto(questao.pergunta);
+        }
+
+        function textoBaseQuestao(questao) {
+            const correspondencia = (questao.pergunta || '').match(/^\s*Texto autoral:\s*[“"]([^”"]+)[”"]/);
+            return correspondencia ? normalizarTexto(correspondencia[1]) : null;
+        }
+
+        function embaralhar(lista) {
+            const copia = lista.slice();
+            for (let i = copia.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copia[i], copia[j]] = [copia[j], copia[i]];
+            }
+            return copia;
+        }
+
+        function filtrarQuestoesRepetidas(banco) {
+            const chavesVistas = new Set();
+            return banco.filter(questao => {
+                const chave = chaveQuestao(questao);
+                if (!chave || chavesVistas.has(chave)) return false;
+                chavesVistas.add(chave);
+                return true;
+            });
+        }
+
         function gerarListaQuestoes() {
             let simuladoFinal = [];
             const enfase = state.config.enfase;
@@ -363,9 +402,48 @@
                 "Conhecimentos Específicos"
             ];
 
+            const chavesUsadas = new Set();
+            const textosBaseUsados = new Map();
+
+            const podeSerSelecionada = (questao, respeitarTextoBase) => {
+                if (chavesUsadas.has(chaveQuestao(questao))) return false;
+                if (!respeitarTextoBase) return true;
+                const textoBase = textoBaseQuestao(questao);
+                if (textoBase === null) return true;
+                return (textosBaseUsados.get(textoBase) || 0) < LIMITE_QUESTOES_POR_TEXTO_BASE;
+            };
+
+            const registrarSelecionada = questao => {
+                chavesUsadas.add(chaveQuestao(questao));
+                const textoBase = textoBaseQuestao(questao);
+                if (textoBase !== null) {
+                    textosBaseUsados.set(textoBase, (textosBaseUsados.get(textoBase) || 0) + 1);
+                }
+            };
+
             ordemDaProva.forEach(materia => {
-                let embaralhadas = questoesAgrupadas[materia].sort(() => Math.random() - 0.5);
-                let selecionadas = embaralhadas.slice(0, metas[materia]);
+                const candidatas = embaralhar(questoesAgrupadas[materia] || []);
+                const meta = metas[materia] || 0;
+                const selecionadas = [];
+
+                candidatas.forEach(questao => {
+                    if (selecionadas.length >= meta) return;
+                    if (podeSerSelecionada(questao, true)) {
+                        selecionadas.push(questao);
+                        registrarSelecionada(questao);
+                    }
+                });
+
+                if (selecionadas.length < meta) {
+                    candidatas.forEach(questao => {
+                        if (selecionadas.length >= meta) return;
+                        if (podeSerSelecionada(questao, false)) {
+                            selecionadas.push(questao);
+                            registrarSelecionada(questao);
+                        }
+                    });
+                }
+
                 simuladoFinal.push(...selecionadas);
             });
 
@@ -409,6 +487,8 @@
         }
 
         function finalizarSimulado(forcar = false) {
+            if (!state.isSimuladoActive) return;
+
             let acertos = 0;
             let naoRespondidas = 0;
 
@@ -580,7 +660,7 @@
         window.onload = async (event) => {
             try {
                 const res = await fetch("dataset/questoes_ufba_comentadas.json");
-                bancoDeQuestoes = await res.json();
+                bancoDeQuestoes = filtrarQuestoesRepetidas(await res.json());
             } catch (err) {
                 console.error("Erro ao buscar banco de dados (JSON).", err);
             }
