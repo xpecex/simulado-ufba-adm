@@ -77,7 +77,8 @@
         const state = {
             config: {
                 padrao: { "Língua Portuguesa": 12, "Noções de Informática": 6, "Administração Pública": 12, "Conhecimentos Específicos": 30 },
-                enfase: "Nenhuma"
+                enfase: "Nenhuma",
+                materia: "Todas"
             },
             history: [],
             currentSimulado: [],
@@ -116,7 +117,9 @@
 
         function salvarConfig() {
             const enfaseSelecionada = document.getElementById('enfase-select').value;
+            const materiaSelecionada = document.getElementById('materia-select').value;
             state.config.enfase = enfaseSelecionada;
+            state.config.materia = materiaSelecionada;
             localStorage.setItem('ufba_simulado_config', JSON.stringify(state.config));
             alert('Configurações salvas com sucesso!');
         }
@@ -253,9 +256,32 @@
 
         function renderConfig() {
             const areas = ["Nenhuma", "Todas", "Língua Portuguesa", "Noções de Informática", "Administração Pública", "Conhecimentos Específicos"];
-            const options = areas.map(area =>
+            const enfaseOptions = areas.map(area =>
                 `<option value="${area}" ${state.config.enfase === area ? 'selected' : ''}>${area}</option>`
             ).join('');
+
+            // Lista de matérias (temáticas) disponíveis
+            const materiasDisponiveis = ["Todas", "Língua Portuguesa", "Noções de Informática", "Administração Pública", "Conhecimentos Específicos"];
+            const materiaOptions = materiasDisponiveis.map(m =>
+                `<option value="${m}" ${state.config.materia === m ? 'selected' : ''}>${m}</option>`
+            ).join('');
+
+            // Contar questões por matéria
+            const contagemPorMateria = {};
+            bancoDeQuestoes.forEach(q => {
+                if (q.tematica) {
+                    contagemPorMateria[q.tematica] = (contagemPorMateria[q.tematica] || 0) + 1;
+                }
+            });
+
+            const materiaInfo = materiasDisponiveis.filter(m => m !== "Todas").map(m => {
+                const count = contagemPorMateria[m] || 0;
+                const meta = state.config.enfase === "Todas" || state.config.enfase === m ? state.config.padrao[m] * 2 : state.config.padrao[m];
+                return `<div class="flex justify-between items-center py-1">
+                    <span class="text-sm">${m}</span>
+                    <span class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">${count} questões disponíveis · meta: ${meta}</span>
+                </div>`;
+            }).join('');
 
             return `
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
@@ -265,8 +291,21 @@
                     <div class="mb-6">
                         <label for="enfase-select" class="block font-semibold mb-2">Focar/Dar Ênfase em:</label>
                         <select id="enfase-select" class="w-full sm:w-1/2 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-ufba-500 outline-none">
-                            ${options}
+                            ${enfaseOptions}
                         </select>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="materia-select" class="block font-semibold mb-2">Selecionar Matéria (Opcional):</label>
+                        <select id="materia-select" class="w-full sm:w-1/2 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-ufba-500 outline-none">
+                            ${materiaOptions}
+                        </select>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Selecione uma matéria para focar apenas nela no simulado. A ênfase aumenta a quantidade de questões dessa disciplina.</p>
+                    </div>
+
+                    <div class="mb-6 border-t dark:border-gray-700 pt-4">
+                        <h3 class="font-semibold mb-2 text-sm text-gray-700 dark:text-gray-300">Distribuição de questões:</h3>
+                        ${materiaInfo}
                     </div>
 
                     <button onclick="salvarConfig()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded focus:ring-4 focus:ring-green-300">
@@ -314,7 +353,10 @@
             state.currentSimulado = gerarListaQuestoes();
 
             if (state.currentSimulado.length === 0) {
-                container.innerHTML = `<div class="p-4 bg-red-100 text-red-800 rounded">Não há questões suficientes no banco de dados para gerar o simulado. Adicione questões ao array JSON.</div>`;
+                const msg = state.config.materia && state.config.materia !== "Todas"
+                    ? `Não foram encontradas questões para a matéria "${state.config.materia}". Tente selecionar outra matéria ou "Todas" nas configurações.`
+                    : `Não há questões suficientes no banco de dados para gerar o simulado.`;
+                container.innerHTML = `<div class="p-4 bg-red-100 text-red-800 rounded">${msg}</div>`;
                 return;
             }
 
@@ -394,6 +436,17 @@
                     questoesAgrupadas[q.tematica].push(q);
                 }
             });
+
+            // Filtrar por matéria (temática), se selecionada
+            const materiaSelecionada = state.config.materia;
+            if (materiaSelecionada && materiaSelecionada !== "Todas") {
+                // Manter apenas a matéria selecionada
+                for (let materia in questoesAgrupadas) {
+                    if (materia !== materiaSelecionada) {
+                        questoesAgrupadas[materia] = [];
+                    }
+                }
+            }
 
             const ordemDaProva = [
                 "Língua Portuguesa",
