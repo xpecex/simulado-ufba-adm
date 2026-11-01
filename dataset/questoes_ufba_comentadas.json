@@ -6048,5 +6048,334 @@
     "itemEdital": "Língua Portuguesa 9 e 11",
     "origem": "autoral",
     "dataRevisao": "2026-10-01"
+  },
+  {
+    "id": 341,
+    "tematica": "Administração Pública",
+    "pergunta": "As funções administrativas envolvem planejamento, organização, direção e controle. Em seu conjunto, essas funções administrativas formam o processo administrativo. Com base nessas informações, assinale a alternativa INCORRETA.",
+    "opcoes": [
+      "O planejamento visa estabelecer os objetivos da empresa e por quais caminhos se chegará a eles.",
+      "O controle envolve a criação de padrões de desempenho, a medição da performance atual, a comparação entre resultados e as possíveis ações corretivas para redirecionar os esforços no caminho certo.",
+      "A direção é a função administrativa que verifica se as outras foram bem executadas.",
+      "A organização visa definir de que maneira o projeto será feito e distribuí-lo entre os departamentos e profissionais correspondentes."
+    ],
+    "respostaCorreta": 2,
+    "assunto": "Funções Administrativas",
+    "explicacao": "A alternativa C é incorreta porque a função que verifica se os objetivos foram alcançados é o Controle. A Direção é a função que interpreta os planos e dá instruções para a execução.",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "media",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 1,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Questão de identificação de função administrativa incorreta."
+    }
+  },
+  {
+    "id": 342,
+    "tematica": "Administração Pública",
+    "pergunta": "Função administrativa na qual os resultados obtidos pela organização/direção são analisados em função daquilo que havia sido planejado. Tal conceito se refere à função de",
+    "opcoes": [
+      "controle.",
+      "direção.",
+      "comunicação.",
+      "planejamento.",
+      "coordenação."
+    ],
+    "respostaCorreta": 0,
+    "assunto": "Funções Administrativas - Controle",
+    "explicacao": "O controle é a função que compara os resultados obtidos com o que foi planejado, definindo padrões e propondo ações corretivas.",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "facil",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 2,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Definição clássica da função de controle."
+    }
+  },
+  {
+    "id": 343,
+    "tematica": "Administração Pública",
+    "pergunta": "A característica da função administrativa que aponta o rumo preciso a percorrer, detalhando os princípios, guias e procedimentos necessários é denominada:",
+    "opcoes": [
+      "Previsão.",
+      "Planejamento.",
+      "Integração.",
+      "Coordenação.",
+      "Direção."
+    ],
+    "respostaCorreta": 1,
+    "assunto": "Funções Administrativas - Planejamento",
+    "explicacao": "O Planejamento é a função que define os objetivos e estabelece os meios (rumo preciso) para alcançá-los.",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "facil",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 3,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Definição de planejamento."
+    }
+  },
+  {
+    "id": 344,
+    "tematica": "Administração Pública",
+    "pergunta": "De acordo com os conceitos da administração, os profissionais que ocupam cargo de chefia no nível operacional, coordenando a execução direta das tarefas e dos procedimentos realizados pelos funcionários a eles subordinados, são chamados de",
+    "opcoes": [
+      "diretores.",
+      "chão de fábrica.",
+      "acionistas",
+      "supervisores.",
+      "gerentes."
+    ],
+    "respostaCorreta": 3,
+    "assunto": "Estrutura Organizacional",
+    "explicacao": "Supervisores atuam no nível operacional, coordenando diretamente a execução das tarefas.",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "facil",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 4,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Definição de níveis de gestão."
+    }
+  },
+  {
+    "id": 345,
+    "tematica": "Administração Pública",
+    "pergunta": "Segundo Chiavenato (2004), organização é um conjunto de pessoas e recursos que trabalham juntos para conquistar um objetivo comum. Nesse sentido, assinale a alternativa correta que apresenta os níveis organizacionais.",
+    "opcoes": [
+      "Nível estratégico, nível tático e nível operacional.",
+      "Nível elementar, nível conceitual e nível operacional.",
+      "Nível estratégico, nível prático e nível operacional.",
+      "Nível um, nível dois e fase final.",
+      "Nível conceitual, nível de pesquisa e nível de execução."
+    ],
+    "respostaCorreta": 0,
+    "assunto": "Níveis Organizacionais",
+    "explicacao": "Os três níveis clássicos da organização são estratégico, tático e operacional.",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "facil",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 5,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Classificação dos níveis organizacionais."
+    }
+  },
+  {
+    "id": 346,
+    "tematica": "Administração Pública",
+    "pergunta": "Dentro do planejamento organizacional, os planos que são de responsabilidade dos gerentes e coordenadores departamentais, ou seja, do médio escalão hierárquico... são denominados planos",
+    "opcoes": [
+      "objetivos.",
+      "diretivos.",
+      "operacionais.",
+      "logísticos.",
+      "táticos."
+    ],
+    "respostaCorreta": 4,
+    "assunto": "Tipos de Planejamento",
+    "explicacao": "Planos táticos são de médio prazo e geralmente elaborados pelo médio escalão (gerentes), traduzindo a estratégia em ações.",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "media",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 6,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Classificação dos planos hierárquicos."
+    }
+  },
+  {
+    "id": 347,
+    "tematica": "Administração Pública",
+    "pergunta": "A essência, o propósito maior de existir e o significado da empresa para a sociedade, pode ser chamada de",
+    "opcoes": [
+      "valor.",
+      "visão.",
+      "princípio.",
+      "impulso.",
+      "missão."
+    ],
+    "respostaCorreta": 4,
+    "assunto": "Missão Organizacional",
+    "explicacao": "A Missão representa a razão de ser da organização, seu propósito e identidade.",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "facil",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 7,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Definição de Missão."
+    }
+  },
+  {
+    "id": 348,
+    "tematica": "Administração Pública",
+    "pergunta": "\"A razão de ser da empresa, por meio da qual a gestão define e mensura o andamento de, pelo menos, dez anos\". O conceito apresentado se refere à(ao)",
+    "opcoes": [
+      "valor.",
+      "visão.",
+      "princípio.",
+      "missão.",
+      "programa."
+    ],
+    "respostaCorreta": 3,
+    "assunto": "Visão Organizacional",
+    "explicacao": "A Visão é a declaração do futuro desejado pela organização, refletindo aspirações de longo prazo.",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "media",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 8,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Definição de Visão."
+    }
+  },
+  {
+    "id": 349,
+    "tematica": "Administração Pública",
+    "pergunta": "Planejamento estratégico é um processo documentado que estabelece a estratégia a ser adotada para que uma empresa possa atingir seus objetivos gerais. Nesse sentido, assinale a alternativa que apresenta corretamente uma característica do planejamento estratégico.",
+    "opcoes": [
+      "Analisa e orienta decisões relativas aos departamentos e processos específicos.",
+      "Voltado às tarefas e operações de uma empresa.",
+      "Identifica os fatores externos e internos que podem afetar a concretização da visão.",
+      "Abrange todos os colaboradores da organização.",
+      "Planejamento de médio prazo voltado a objetivos de 1 a 3 anos."
+    ],
+    "respostaCorreta": 2,
+    "assunto": "Planejamento Estratégico",
+    "explicacao": "O Planejamento Estratégico envolve a análise do ambiente externo (oportunidades e ameaças) e interno (forças e fraquezas).",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "media",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 9,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Características do Planejamento Estratégico."
+    }
+  },
+  {
+    "id": 350,
+    "tematica": "Administração Pública",
+    "pergunta": "A primeira etapa do planejamento estratégico é realizar um estudo, por meio do qual se pode concentrar nos pontos fortes, reconhecer as fraquezas, encontrar as oportunidades e prevenir-se de ameaças. Esse conjunto de informações indicam exatamente onde uma empresa está no momento. Que nome se dá a esse estudo?",
+    "opcoes": [
+      "Técnicas de Rapport.",
+      "Metodologia 5S.",
+      "Estudo de Coorte.",
+      "Matriz BCG.",
+      "Análise SWOT."
+    ],
+    "respostaCorreta": 4,
+    "assunto": "Ferramentas de Planejamento",
+    "explicacao": "A análise SWOT (FOFA) é a ferramenta que avalia Forças, Fraquezas, Oportunidades e Ameaças.",
+    "referencias": [
+      "https://youtu.be/HJbuBqS43qk"
+    ],
+    "dificuldade": "facil",
+    "peso": 1,
+    "itemEdital": "Administração Geral",
+    "origem": "PDF Instituto Avalia - Lista 01",
+    "dataRevisao": "2024-05-22",
+    "provaReferencia": {
+      "instituicao": "Universidade Federal da Bahia (UFBA)",
+      "banca": "Instituto Avalia",
+      "edital": "001/2025",
+      "tipo": "01",
+      "questao": 10,
+      "arquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "gabaritoArquivo": "UFBA - Quebrando a Banca Instituto Avalia - Administração - Petronio Castro.pdf",
+      "observacao": "Definição de Análise SWOT."
+    }
   }
 ]
